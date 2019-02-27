@@ -1,0 +1,463 @@
+<!doctype html>
+<!-- Add a selected class to remove elements
+Handle resize of container wrapper
+Handle things moving on resize
+clone to where item was dropped -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Draggable - Constrain movement</title>
+  <!–– <link rel="stylesheet" href="/resources/demos/style.css">
+  <style>
+  .draggable { width: 90px; height: 90px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
+  #draggable, #draggable2 { margin-bottom:20px; }
+  #draggable { cursor: n-resize; }
+  #draggable2 { cursor: e-resize; }
+  #containment-wrapper { width: 95%; height:150px; border:2px solid #ccc; }
+  h3 { clear: left; }
+  resizable { width: 150px; height: 150px; padding: 0.5em; }
+  resizable h3 { text-align: center; margin: 0; }
+  
+  .ui-resizable { position: relative;}
+.ui-resizable-handle { position: absolute;font-size: 0.1px; display: block; }
+.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle { display: none; }
+.ui-resizable-n { cursor: n-resize; height: 7px; width: 100%; top: -5px; left: 0; }
+.ui-resizable-s { cursor: s-resize; height: 7px; width: 100%; bottom: -5px; left: 0; }
+.ui-resizable-e { cursor: e-resize; width: 7px; right: -5px; top: 0; height: 100%; }
+.ui-resizable-w { cursor: w-resize; width: 7px; left: -5px; top: 0; height: 100%; }
+.ui-resizable-se { cursor: se-resize; width: 12px; height: 12px; right: 1px; bottom: 1px; }
+.ui-resizable-sw { cursor: sw-resize; width: 9px; height: 9px; left: -5px; bottom: -5px; }
+.ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
+.ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px;}
+
+
+
+#containment-wrapper {
+    border:solid blue 1px;
+    width:100%;height:200px;
+    background:whitesmoke url('https://s3.amazonaws.com/com.appgrinders.test/images/grid_20.png') repeat;
+}
+
+
+.containment_wrapper {
+    border:solid blue 1px;
+    width:100%;height:200px;
+    background:whitesmoke url('https://s3.amazonaws.com/com.appgrinders.test/images/grid_20.png') repeat;
+}
+
+.room_icon {
+	width: 60px; height: 60px; padding: 0; margin: 0 0px 0px 0; outline: 1px solid black; border:0px !important;
+outline-offset: -1px; background-color: white;
+}
+
+.room {
+	width: 60px; height: 60px; padding: 0; margin: 0 0px 0px 0; outline: 1px solid black; border:0px !important;
+outline-offset: -1px; background-color: white; background-image:none !important;
+position:absolute !important; white-space: nowrap; text-overflow: ellipsis; 
+}
+
+.selected {
+	
+}
+
+.overlay_close{
+	position: absolute;
+	font-size: 1px;
+	cursor: pointer;
+	padding: 8px;
+	top: -10;
+	background-image: url("https://cdn1.iconfinder.com/data/icons/diagona/icon/16/101.png");
+}
+.overlay_rename{
+	position: absolute;
+	font-size: 1px;
+	cursor: pointer;
+	padding: 8px;
+	top: -10;
+	background-size: 16px;
+	background-image: url("http://simpleicon.com/wp-content/uploads/pencil-64x64.png");
+}
+
+  </style>
+  
+  <title>Layout Editor</title>
+
+  		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+		<!-- jQuery library -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<!-- Popper JS -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+		
+		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+		<!-- Latest compiled JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+		
+		
+		<link rel="stylesheet/text" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+      <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
+         rel = "stylesheet">
+		 
+		 
+    <!-- Download that later!! -->
+  <script  type="javascript" src="https://raw.github.com/furf/jquery-ui-touch-punch/master/jquery.ui.touch-punch.js"></script>
+  <script>
+  $( function() { 
+	$('.droppable').droppable({
+	  accept: "#room_tmp",
+	  drop: function(event, ui) {drop_function(event, ui, this);}
+	});
+  } );
+  </script>
+</head>
+<body>
+<nav class="navbar sticky-top navbar-expand-lg navbar navbar-dark bg-dark">
+	<a class="navbar-brand" href="/Main">Hostel Manager</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+	  <span class="navbar-toggler-icon"></span>
+	</button>
+  
+	<div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+	  <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+		<!-- <li class="nav-item active">
+		  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+		</li>
+		<li class="nav-item">
+		  <a class="nav-link" href="#">Link</a>
+		</li> -->
+		<li class="nav-item">
+		  <a id="reset_db" class="nav-link" href="#">ResetDB</a>
+		</li>
+	  </ul>
+	  <form class="form-inline my-2 my-lg-0">
+		<button class="btn btn-outline-success my-2 my-sm-0" onclick="save_layout(event)">Save Changes</button>
+	  </form>
+	</div>
+</nav>
+
+
+<div class="container-fluid">
+	<div class="row justify-content-sm-center">
+	<!-- Menu part -->
+		<div class="col-lg-2">
+			<form>
+			  <input id="grid_radio_button" type="radio" name="movement" value="grid" checked>Grid<br>
+			  <input type="radio" name="movement" value="free">Free<br>
+			</form>
+			<div id="room_tmp" class="draggable ui-widget-content room_icon" style="border: thin solid black">
+				<p>Room</p>
+			</div>
+		</div>
+		
+	<!-- Layout Editing Part -->
+		<div id="floors" class="col-lg-10">
+			<div class="row">
+				<select id="floor_selection" class="form-control">
+				  <option value="all">All</option>
+				</select>
+				<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add_floor_modal">Add Floor</button>
+			</div>
+			<div id ="containment-wrapper_row" class="row">
+				<div id="containment-wrapper" class="droppable containment_wrapper"></div>
+			 </div>
+		 </div>
+	 </div>
+ </div>
+
+<!-- Floor adding modal -->
+<div class="modal fade" id="add_floor_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Adding a new floor</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="add_floor(floor_name.value, floor_id.value, event)">
+          <div class="form-group">
+            <label for="floor_name" class="col-form-label">Floor Name:</label>
+            <input type="text" class="form-control" id="floor_name" required>
+          </div>
+          <div class="form-group">
+            <label for="floor_id" class="col-form-label">Floor ID:</label>
+			<input type="text" class="form-control" id="floor_id" required>
+          </div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="submit" class="btn btn-primary">Add Floor</button>
+		</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Room configuring modal -->
+<div class="modal fade" id="room_config_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Room Configuration</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="add_floor(floor_name.value, floor_id.value, event)">
+          <div class="form-group">
+            <label for="room_name" class="col-form-label">Room Name:</label>
+            <input type="text" class="form-control" id="room_name" required>
+          </div>
+          <div class="form-group">
+            <label for="room_id" class="col-form-label">Room ID:</label>
+			<input type="text" class="form-control" id="room_id" required>
+          </div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			<button type="submit" class="btn btn-primary">Save</button>
+		</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+	$( document ).ready(function() {
+		$("#floor_selection").change(function(){
+		  var id = this.value;
+		  if (id == "all"){
+			$( ".containment_wrapper" ).each(function() { $( this ).parent().show(); console.log($( this ).parent().attr('id'));});
+		  } else {
+			$( ".containment_wrapper" ).each(function() {
+				if ( $( this ).parent().attr('id') != id+"_row") {
+					$( this ).parent().hide();
+				}
+				else {
+					$( this ).parent().show();
+				}
+		  });
+		  }
+		});
+	
+	
+		sessionStorage.setItem("rooms", 0);
+		// Making sure the container's size is multuples of 20 (for grid arrangement)
+		width = $( "#containment-wrapper" ).width();
+		remainder = width % 20;
+		width = width - remainder;
+		$( "#containment-wrapper" ).css('width', width);
+		// Changing the resize function
+		$( "#containment-wrapper" ).resizable({grid: [ 20, 20 ], resize: function(){
+		var x = 0;
+		var y = 0;
+		$( ".room" ).each(function() {
+			if (x <= ($( this ).position().left + $( this ).width())){
+				x = $( this ).position().left + $( this ).width();
+			}
+			if (y <= ($( this ).position().top + $( this ).height())){
+				y = $( this ).position().top + $( this ).height();
+			}
+		});
+		$("#containment-wrapper").css("min-width", x);
+		$("#containment-wrapper").css("min-height", y);
+		}});
+		$( "#room_tmp" ).draggable({scroll: false, snap: true, helper: "clone"});
+	});
+	
+	$("input[name=movement]").click(function(){
+    if (this.value == "free"){
+		$( ".room" ).draggable({grid: false });
+		$( ".room" ).resizable({grid: false});
+		$( "#room_tmp" ).draggable({grid: false});
+		
+	} else {
+		$( ".room" ).draggable({grid: [ 20, 20 ] });
+		$( ".room" ).resizable({grid: [ 20, 20 ]});
+		$( "#room_tmp" ).draggable({grid: [ 20, 20 ] });
+	}
+}); 
+
+function save_layout(){
+	event.preventDefault();
+// [{room name, top, left, length, width}, ...] ]
+	var floors = [];
+	var rooms = [];
+	$( ".containment_wrapper" ).each(function() {
+	$( this ).find(".room").each(function(index, subvalue) {
+		var room_id = subvalue.id;
+		var room = $("#" + room_id);
+			rooms.push({'id': room_id, 'name': room.text(), 'top': room.position().top, 'left': room.position().left, 'width': room.width(), 'height': room.height()});
+		});
+		var floor_name = $( this ).parent().find('h3').text();
+		var floor_id = $( this ).attr('id');
+		floors.push({'name': floor_name, 'id': floor_id, 'rooms': rooms});
+		rooms = [];
+		//floors.push({'name': $( this ).text(), 'top': $( this ).position().top, 'left': $( this ).position().left, 'width': $( this ).width(), 'height': $( this ).height()});
+	});
+	sessionStorage.setItem("saved_layout", JSON.stringify(floors));
+	
+	console.log(sessionStorage.getItem("saved_layout"));
+}
+function load_layout(){
+	var rooms = sessionStorage.getItem("saved_layout");
+	data = JSON.parse(rooms);
+	sessionStorage.setItem("rooms",0);
+	$.each(data, function(i, value) {
+	
+	
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@update from cloning when it's done@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+		var rooms = sessionStorage.getItem("rooms");
+		rooms++;
+		sessionStorage.setItem("rooms",rooms);
+		$( "#containment-wrapper" ).append("<div id=\"room" + rooms + "\" class=\"draggable ui-widget-content room\" style=\"border: thin solid black;\"><p>" + value['name'] + "</p></div>");
+		$( "#room"+rooms ).draggable({ containment: "#containment-wrapper", scroll: false , snap: true, helper: "original"});
+		$( "#room"+rooms ).resizable({containment: "#containment-wrapper"});
+		$( "#room"+rooms ).css({'top': value['top'], 'left': value['left'], 'width': value['width'], 'height': value['height']});
+	
+		$( "#room"+rooms ).on('click', function(event){
+		// Handles room selection
+			if ($( "#room"+rooms ).hasClass("selected")){
+				$( ".room" ).removeClass('selected');
+			} else {
+				$( ".room" ).removeClass('selected');
+				$( "#room"+rooms ).addClass('selected');
+				$( "#room"+rooms ).append("<span class=\"ui-icon ui-icon-trash\"></span>");
+			}
+		});
+				if ($( "#grid_radio_button" ).prop('checked')) {
+			$( "#room"+rooms ).draggable({ grid: [ 20, 20 ]});
+			$( "#room"+rooms ).resizable({grid: [ 20, 20 ]});
+		}
+});
+}
+
+// Handles new floor creation
+function add_floor(floor_name, floor_id, event){
+	event.preventDefault();
+	//Function goes here
+	var row_id = floor_id + "_row";
+	$( "#floors" ).append("<div id= " + row_id + " class=\"row\"><h3>" + floor_name + "</h3><div id=" + floor_id + " class=\"droppable containment_wrapper\"></div><div>");
+	// Making sure the container's size is multuples of 20 (for grid arrangement)
+		width = $( "#" + floor_id ).width();
+		remainder = width % 20;
+		width = width - remainder;
+		$( "#" + floor_id ).css('width', width);
+		// Changing the resize function
+		$( "#" + floor_id ).resizable({grid: [ 20, 20 ], resize: function(){
+		var x = 0;
+		var y = 0;
+		$( ".room" ).each(function() {
+			if (x <= ($( this ).position().left + $( this ).width())){
+				x = $( this ).position().left + $( this ).width();
+			}
+			if (y <= ($( this ).position().top + $( this ).height())){
+				y = $( this ).position().top + $( this ).height();
+			}
+		});
+		$( "#" + floor_id ).css("min-width", x);
+		$( "#" + floor_id ).css("min-height", y);
+		}});
+	
+	
+		$('.droppable').droppable({
+	  accept: "#room_tmp",
+	  drop: function(event, ui) {drop_function(event, ui, this);}
+	});
+	$("#floor_selection").append("<option value=" + floor_id + ">" + floor_name + "</option>");
+	
+	$("#add_floor_modal").modal('hide');
+}
+
+// Handles drop events for droppable elements
+function drop_function(event, ui, element){
+		var droppable = $(element);
+		var target_for_drop_id = $(element).attr('id');
+		var draggable = ui.draggable;
+		// Move draggable into droppable
+		var drag = $('.droppable').has(ui.draggable).length ? draggable : draggable.clone().draggable({
+		  revert: "invalid",
+		  stack: ".draggable",
+		  helper: 'clone'
+		});
+		// Cloning an element
+		var rooms = sessionStorage.getItem("rooms");
+		rooms++;
+		sessionStorage.setItem("rooms",rooms);
+		selected_element = $( "#room"+rooms );
+		$( "#"+target_for_drop_id ).append("<div id=\"room" + rooms + "\" class=\"draggable room\" style=\"border: thin solid black\"><p>Room " + rooms + "</p></div>");
+		$( "#room"+rooms ).draggable({ containment: "#" + target_for_drop_id, scroll: false , snap: true, helper: "original"});
+		$( "#room"+rooms ).resizable({containment: "#" + target_for_drop_id});
+		$( "#room"+rooms ).dblclick(function() {
+		  $( "#room_config_modal" ).modal('show');
+		});
+		
+		// Moves the remove and rename icons while resizing
+		$( "#room"+rooms ).resize(function() {
+			if ($( "#room"+rooms ).hasClass("selected")){
+				$( ".overlay_close" ).css({'left': (selected_element.outerWidth() + $( "#room"+rooms ).width() + 2), 'top': selected_element.scrollTop(), 'zIndex': '1000'});
+				$( ".overlay_rename" ).css({'left': (selected_element.outerWidth() + $( "#room"+rooms ).width() + 20), 'top': selected_element.scrollTop(), 'zIndex': '1000'});
+			}
+		});
+		$( "#room"+rooms ).on('click', function(event){
+		// Handles room selection
+			if ($( "#room"+rooms ).hasClass("selected")){
+			// Clicking a selected div, resets selection
+				// Removing selection from all the elements
+				$( ".room" ).removeClass('selected');
+				$( ".overlay_close" ).remove();
+				$( ".overlay_rename" ).remove();
+				
+			} else {
+			$( "#room"+rooms ).addClass('selected');
+				var selected_element = $( "#room"+rooms );
+				// Removing selection from all the elements
+				$( ".room" ).removeClass('selected');
+				$( ".overlay_close" ).remove();
+				$( ".overlay_rename" ).remove();
+				// Selecting current element
+				$( "#room"+rooms ).addClass('selected');
+				//Adding remove button
+				var removeOverLay = $('<span/>');
+				removeOverLay.addClass("overlay_close");		
+				removeOverLay.css({'left': (selected_element.outerWidth() + 2), 'top': selected_element.scrollTop(), 'zIndex': '1000'});
+				$( "#room"+rooms ).append(removeOverLay);
+				$(".overlay_close").on("click", function(){ selected_element.remove();});
+				//Adding rename button
+				var renameOverLay = $('<span/>');
+				renameOverLay.addClass("overlay_rename");		
+				renameOverLay.css({'left': (selected_element.outerWidth() + 20), 'top': selected_element.scrollTop(), 'zIndex': '1000'});
+				$( "#room"+rooms ).append(renameOverLay);
+				$(".overlay_rename").on("click", function(){ 
+					var room_name = prompt("Choose a name", selected_element.text());
+					selected_element.find('p:first').text(room_name);
+				});
+			}
+		});
+		if ($( "#grid_radio_button" ).prop('checked')) {
+			$( "#room"+rooms ).draggable({ grid: [ 20, 20 ]});
+			$( "#room"+rooms ).resizable({grid: [ 20, 20 ]});
+		}
+		left_position = (event.pageX - $("#room_tmp").width()/2 - $( "#"+target_for_drop_id ).offset().left);
+		top_position = (event.pageY - $( "#"+target_for_drop_id ).offset().top - $("#room_tmp").height()/2);
+		if ($( "#grid_radio_button" ).prop('checked')){
+		// Clone when grid is on
+			left_position = left_position - left_position % 20;
+			top_position = top_position - top_position % 20;
+		}
+		// Handle the corner cases of positioning
+		if (top_position < 0) { top_position = 0; }
+		if (top_position + $("#room_tmp").height() > ($( "#"+target_for_drop_id ).height())) { top_position = $( "#"+target_for_drop_id ).height() - $("#room_tmp").height();}
+		if (left_position < 0) { left_position = 0; }
+		if (left_position + $("#room_tmp").width() > ($( "#"+target_for_drop_id ).width())) { left_position = $( "#"+target_for_drop_id ).width() - $("#room_tmp").width();}
+		// Position new element
+		$( "#room"+rooms ).css({'left': left_position, 'top': top_position});
+	  }
+
+</script>
+</html>
